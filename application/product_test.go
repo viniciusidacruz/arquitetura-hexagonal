@@ -3,6 +3,7 @@ package application_test
 import (
 	"testing"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/viniciusidacruz/arquitetura-hexagonal/application"
 )
@@ -61,4 +62,28 @@ func TestProduct_GetStatus(t *testing.T) {
     product.Status = application.ENABLED
 
     require.Equal(t, product.GetStatus(), application.ENABLED)
+}
+
+func TestProduct_IsValid(t *testing.T) {
+    product := application.Product{}
+    product.ID = uuid.NewV4().String()
+    product.Price = 100.2
+    product.Name = "test product"
+    product.Status = application.DISABLED
+
+    _, err := product.IsValid()
+    require.Nil(t, err)
+
+    
+    product.Status = "INVALID"
+    _, err = product.IsValid()
+    require.Equal(t, "The status must be enabled or disabled", err.Error())
+    
+    product.Status = application.ENABLED
+    _, err = product.IsValid()
+    require.Nil(t, err)
+
+    product.Price = -10
+    _, err = product.IsValid()
+    require.Equal(t, "The price must be a positive number", err.Error())
 }
